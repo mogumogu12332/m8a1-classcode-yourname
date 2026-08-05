@@ -7,14 +7,20 @@ name: Autograde
 # never touched, so there is nothing to git pull. Works on private repos; no Pages.
 on:
   push:
+    branches-ignore: [previews]
   workflow_dispatch:
 
 permissions:
   contents: write   # lets the preview step push to the previews branch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -57,12 +63,19 @@ jobs:
           console.log(`HAS_CONTENT=${hasContent ? '1' : '0'}`)
           EOF
 
+      - name: Cache the preview browser
+        if: ${{ always() && env.HAS_CONTENT == '1' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ms-playwright-chromium-${{ runner.os }}
+
       - name: Install browser for preview
         if: ${{ always() && env.HAS_CONTENT == '1' }}
         continue-on-error: true
         run: |
           npm i -D playwright >/dev/null 2>&1
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
 
       - name: Render page preview
         if: ${{ always() && env.HAS_CONTENT == '1' }}
