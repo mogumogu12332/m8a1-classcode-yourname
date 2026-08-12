@@ -10,3 +10,12 @@
 // Concepts to look up if you are stuck: const, template literals,
 // document.querySelector, textContent, console.log.
 
+
+const dish = "Grilled Chicken";
+const price = 12.99;
+
+const sentence = `Today's special is ${dish} for $${price}.`;
+
+document.querySelector("#special").textContent = sentence;
+
+console.log("JavaScript ran successfully!");
